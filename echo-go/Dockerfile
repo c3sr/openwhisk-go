@@ -3,29 +3,8 @@ FROM openwhisk/dockerskeleton
  
 ENV FLASK_PROXY_PORT 8080
 
-### Add source file(s)
-ADD example.c /action/example.c
 
-# RUN apk add --no-cache --virtual .build-deps \
-#         bzip2-dev \
-#         gcc \
-#         libc-dev \
-# ### Compile source file(s)
-#  && cd /action; gcc -o exec example.c \
-#  && apk del .build-deps
-
-RUN apk add --no-cache --virtual .build-deps \
-        bzip2-dev \
-        gcc \
-        libc-dev \
-### Compile source file(s)
- && cd /action; gcc -o exec example.c \
- && apk del .build-deps
-
-
-
-
-
+#### Install go
 RUN apk add --no-cache ca-certificates
 
 ENV GOLANG_VERSION 1.7.5
@@ -69,6 +48,6 @@ COPY go-wrapper /usr/local/bin/
 
 ADD example.go /action/example.go
 
-RUN cd /action && go build
+RUN cd /action && go build && mv action exec
 
 CMD ["/bin/bash", "-c", "cd actionProxy && python -u actionproxy.py"]
