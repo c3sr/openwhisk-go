@@ -1,5 +1,7 @@
 # openwhisk-go
 
+This repository holds and implementation of an OpenWhisk Go client, as well as examples for how to build arbitrary actions using Go.
+
 ## client
 
 Implementation of an OpenWhisk client in Go.
