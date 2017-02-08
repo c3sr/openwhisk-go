@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,10 +15,13 @@ const (
 	actionPath = "/api/v1/namespaces/_/actions/"
 )
 
+type Parameters map[string]string
+
 type ActionInvocation struct {
 	name     string
-	params   []model.Parameter
+	params   Parameters
 	blocking bool
+	result   bool
 }
 
 type Client struct {
@@ -32,7 +36,7 @@ func NewClient(endpoint, username, password string) *Client {
 
 func NewInvocation(actionName string, options ...func(*ActionInvocation)) *ActionInvocation {
 
-	i := &ActionInvocation{name: actionName}
+	i := &ActionInvocation{name: actionName, params: Parameters{}}
 
 	for _, option := range options {
 		option(i)
@@ -89,8 +93,8 @@ func (c *Client) GetActions() ([]model.Action, error) {
 	return actions, nil
 }
 
-func AddParameter(i *ActionInvocation, param model.Parameter) {
-	i.params = append(i.params, param)
+func (i *ActionInvocation) AddParameter(key string, value string) {
+	i.params[key] = value
 }
 
 func Blocking(i *ActionInvocation) {
@@ -101,11 +105,24 @@ func Nonblocking(i *ActionInvocation) {
 	i.blocking = false
 }
 
+func ResultOnly(i *ActionInvocation) {
+	i.result = true
+}
+
 func (c *Client) Invoke(i *ActionInvocation) ([]byte, error) {
-	req, err := c.NewBasicAuthRequest("POST", c.endpoint+actionPath+i.name, nil)
+
+	jsonBytes, err := json.Marshal(i.params)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(jsonBytes))
+
+	req, err := c.NewBasicAuthRequest("POST", c.endpoint+actionPath+i.name, bytes.NewBuffer(jsonBytes))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
 
 	// Set request parameters
 	q := req.URL.Query()
@@ -114,9 +131,12 @@ func (c *Client) Invoke(i *ActionInvocation) ([]byte, error) {
 	} else {
 		q.Add("blocking", "false")
 	}
-	for _, param := range i.params {
-		q.Add(param.Key, param.Value)
+	if i.result {
+		q.Add("result", "true")
+	} else {
+		q.Add("result", "false")
 	}
+
 	req.URL.RawQuery = q.Encode()
 
 	fmt.Println(req.URL)

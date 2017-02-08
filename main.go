@@ -23,9 +23,9 @@ func main() {
 	}
 
 	fmt.Println(actions)
-
-	invocation := apiclient.NewInvocation("echo-go", apiclient.Blocking)
-	resp, err := client.Invoke(invocation)
+	i := apiclient.NewInvocation("echo-go", apiclient.Blocking, apiclient.ResultOnly)
+	i.AddParameter("foo", "bar")
+	resp, err := client.Invoke(i)
 	if err != nil {
 		log.Fatal(err)
 	}
