@@ -11,8 +11,14 @@ import (
 )
 
 const (
-	actionPath = "/api/v1/namespaces/_/actions"
+	actionPath = "/api/v1/namespaces/_/actions/"
 )
+
+type ActionInvocation struct {
+	name     string
+	params   []model.Parameter
+	blocking bool
+}
 
 type Client struct {
 	endpoint string
@@ -20,8 +26,19 @@ type Client struct {
 	password string
 }
 
-func New(endpoint, username, password string) *Client {
+func NewClient(endpoint, username, password string) *Client {
 	return &Client{endpoint: "https://openwhisk.ng.bluemix.net", username: username, password: password}
+}
+
+func NewInvocation(actionName string, options ...func(*ActionInvocation)) *ActionInvocation {
+
+	i := &ActionInvocation{name: actionName}
+
+	for _, option := range options {
+		option(i)
+	}
+
+	return i
 }
 
 func doReq(req *http.Request) ([]byte, error) {
@@ -41,7 +58,7 @@ func doReq(req *http.Request) ([]byte, error) {
 
 }
 
-func (c *Client) NewRequestWithBasicAuth(method string, urlStr string, body io.Reader) (*http.Request, error) {
+func (c *Client) NewBasicAuthRequest(method string, urlStr string, body io.Reader) (*http.Request, error) {
 	req, err := http.NewRequest(method, urlStr, body)
 	if err != nil {
 		return nil, err
@@ -51,7 +68,7 @@ func (c *Client) NewRequestWithBasicAuth(method string, urlStr string, body io.R
 }
 
 func (c *Client) GetActions() ([]model.Action, error) {
-	req, err := c.NewRequestWithBasicAuth("GET", c.endpoint+actionPath, nil)
+	req, err := c.NewBasicAuthRequest("GET", c.endpoint+actionPath, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -72,26 +89,42 @@ func (c *Client) GetActions() ([]model.Action, error) {
 	return actions, nil
 }
 
-func (c *Client) ListEntities() ([]byte, error) {
-	// req, err := http.NewRequest("GET", c.endpoint+"/api/v1/namespaces/whisk.system/packages", nil)
-	req, err := http.NewRequest("GET", c.endpoint+"/api/v1/namespaces/_/actions", nil)
+func AddParameter(i *ActionInvocation, param model.Parameter) {
+	i.params = append(i.params, param)
+}
+
+func Blocking(i *ActionInvocation) {
+	i.blocking = true
+}
+
+func Nonblocking(i *ActionInvocation) {
+	i.blocking = false
+}
+
+func (c *Client) Invoke(i *ActionInvocation) ([]byte, error) {
+	req, err := c.NewBasicAuthRequest("POST", c.endpoint+actionPath+i.name, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	req.SetBasicAuth(c.username, c.password)
+	// Set request parameters
+	q := req.URL.Query()
+	if i.blocking {
+		q.Add("blocking", "true")
+	} else {
+		q.Add("blocking", "false")
+	}
+	for _, param := range i.params {
+		q.Add(param.Key, param.Value)
+	}
+	req.URL.RawQuery = q.Encode()
 
-	client := &http.Client{}
+	fmt.Println(req.URL)
 
-	resp, err := client.Do(req)
+	bytes, err := doReq(req)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	if err != nil {
-		return nil, err
-	}
-	return ioutil.ReadAll(resp.Body)
-
+	return bytes, nil
 }

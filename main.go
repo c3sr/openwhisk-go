@@ -11,7 +11,7 @@ import (
 func main() {
 
 	// create the API client
-	client := apiclient.New(os.Getenv("OPENWHISK_ENDPOINT"),
+	client := apiclient.NewClient(os.Getenv("OPENWHISK_ENDPOINT"),
 		os.Getenv("OPENWHISK_USERNAME"),
 		os.Getenv("OPENWHISK_PASSWORD"))
 
@@ -24,6 +24,12 @@ func main() {
 
 	fmt.Println(actions)
 
+	invocation := apiclient.NewInvocation("echo-go", apiclient.Blocking)
+	resp, err := client.Invoke(invocation)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(resp))
 	// make the authenticated request to get all items
 	// bearerTokenAuth := httptransport.BearerToken(os.Getenv("API_ACCESS_TOKEN"))
 	// apiKeyQueryAuth := httptransport.APIKeyAuth("apiKey", "query", os.Getenv("API_KEY"))
