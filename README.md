@@ -1,10 +1,10 @@
 # openwhisk-go
 
-## Client
+## client
 
 Implementation of an OpenWhisk client in Go.
 
-## Model
+## model
 
 Object model for some OpenWhisk JSON objects.
 
