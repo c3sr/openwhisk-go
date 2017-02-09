@@ -5,4 +5,4 @@ ADD example.go /action/example.go
 
 RUN cd /action && go build && mv action exec
 
-CMD ["/bin/bash", "-c", "cd actionProxy && python -u actionproxy.py"]
+CMD ["/bin/bash", "-c", "cd /actionProxy && python -u actionproxy.py"]
