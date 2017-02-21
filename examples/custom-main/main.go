@@ -10,8 +10,13 @@ import (
 
 func main() {
 
+	endpoint := os.Getenv("OPENWHISK_ENDPOINT")
+	if endpoint == "" {
+		log.Fatal("Please set OPENWHISK_ENDPOINT environment variable.")
+	}
+
 	// create the API client
-	client := apiclient.NewClient(os.Getenv("OPENWHISK_ENDPOINT"),
+	client := apiclient.NewClient(endpoint,
 		os.Getenv("OPENWHISK_USERNAME"),
 		os.Getenv("OPENWHISK_PASSWORD"))
 
