@@ -23,7 +23,8 @@ func main() {
 	p.SetNamespace("IBM-ILLINOIS-C3SR_dev")
 
 	ap := &models.ActionPut{Version: "0.0.2", Publish: true}
-	kindStr := "blackbox"
+	kindStr := models.ActionExecKindBlackbox
+
 	ap.Exec = &models.ActionExec{Kind: &kindStr, Image: "c3sr/echo-go"}
 	memLimit := int32(256)
 	timeout := int32(60000)
