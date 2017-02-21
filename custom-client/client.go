@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	model "github.com/cwpearson/openwhisk-go/model"
+	model "github.com/c3sr/openwhisk-go/custom-model"
 )
 
 const (

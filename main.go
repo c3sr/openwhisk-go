@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	apiclient "github.com/cwpearson/openwhisk-go/client"
+	apiclient "github.com/c3sr/openwhisk-go/custom-client"
 )
 
 func main() {
