@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	apiclient "github.com/c3sr/openwhisk-go/client"
+	models "github.com/c3sr/openwhisk-go/models"
 
 	"os"
 
@@ -37,4 +38,11 @@ func NewBasicAuthClient(endpoint, username, password string) *apiclient.OpenWhis
 	transport.DefaultAuthentication = wr
 	cli := apiclient.New(transport, formats)
 	return cli
+}
+
+func NewKeyValue(key, value string) *models.KeyValue {
+	return &models.KeyValue{
+		Key:   &key,
+		Value: &value,
+	}
 }
