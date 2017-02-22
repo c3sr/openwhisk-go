@@ -1,0 +1,6 @@
+414c414,416
+<                         "$ref": "#/responses/AcceptedActivation"
+---
+>                         "schema": {
+>                             "$ref": "#/responses/AcceptedActivation"
+>                         }
