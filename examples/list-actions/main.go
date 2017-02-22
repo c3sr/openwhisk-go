@@ -14,14 +14,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	p := actions.NewGetActionByNameParams()
+	p := actions.NewGetAllActionsParams()
 	p.SetNamespace("_")
-	p.SetActionName("echo-go")
 
-	ok, err := cli.Actions.GetActionByName(p)
+	ok, err := cli.Actions.GetAllActions(p)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(*ok.Payload)
+	fmt.Println("Actions:")
+	for _, m := range ok.Payload {
+		fmt.Println(*m.Name, *m.Namespace)
+	}
 }

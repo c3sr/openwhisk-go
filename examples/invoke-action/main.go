@@ -5,10 +5,29 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	openwhisk "github.com/c3sr/openwhisk-go"
-	actions "github.com/c3sr/openwhisk-go/swagger_client/actions"
+	apiclient "github.com/c3sr/openwhisk-go/client"
+	models "github.com/c3sr/openwhisk-go/models"
+	swagger_actions "github.com/c3sr/openwhisk-go/swagger_client/actions"
 )
 
 func main() {
+	c, err := apiclient.NewClientFromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+	ai := models.NewActionInvocation("echo-go", models.Blocking(true), models.ResultOnly(false))
+
+	ai.AddParameter("key1", "value1")
+
+	bytes, err := c.Invoke(ai)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%v\n", string(bytes))
+}
+
+func brokenSwaggerExample() {
 	cli, err := openwhisk.NewBasicAuthClientFromEnv()
 	if err != nil {
 		log.Fatal(err)
@@ -17,7 +36,7 @@ func main() {
 	trueStr := "true"
 	// falseStr := "false"
 
-	p := actions.NewInvokeActionParams().
+	p := swagger_actions.NewInvokeActionParams().
 		WithNamespace("_").
 		WithActionName("echo-go")
 		// WithResult(&falseStr)

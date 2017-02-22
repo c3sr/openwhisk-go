@@ -3,27 +3,19 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 
-	"github.com/cwpearson/openwhisk-go/model"
+	models "github.com/c3sr/openwhisk-go/models"
 )
 
 const (
 	actionPath = "/api/v1/namespaces/_/actions/"
 )
-
-type Parameters map[string]string
-
-type ActionInvocation struct {
-	name     string
-	params   Parameters
-	blocking bool
-	result   bool
-	timeout  int
-}
 
 type Client struct {
 	endpoint string
@@ -32,18 +24,23 @@ type Client struct {
 }
 
 func NewClient(endpoint, username, password string) *Client {
-	return &Client{endpoint: "https://openwhisk.ng.bluemix.net", username: username, password: password}
+	return &Client{endpoint: endpoint, username: username, password: password}
 }
 
-func NewInvocation(actionName string, options ...func(*ActionInvocation)) *ActionInvocation {
-
-	i := &ActionInvocation{name: actionName, params: Parameters{}}
-
-	for _, option := range options {
-		option(i)
+func NewClientFromEnv() (*Client, error) {
+	endpoint := os.Getenv("OPENWHISK_ENDPOINT")
+	if endpoint == "" {
+		return nil, errors.New("Environment variable OPENWHISK_ENDPOINT was not set")
 	}
-
-	return i
+	username := os.Getenv("OPENWHISK_USERNAME")
+	if username == "" {
+		return nil, errors.New("Environment variable OPENWHISK_USERNAME was not set")
+	}
+	password := os.Getenv("OPENWHISK_PASSWORD")
+	if password == "" {
+		return nil, errors.New("Environment variable OPENWHISK_PASSWORD was not set")
+	}
+	return NewClient(endpoint, username, password), nil
 }
 
 func doReq(req *http.Request) ([]byte, error) {
@@ -72,7 +69,7 @@ func (c *Client) NewBasicAuthRequest(method string, urlStr string, body io.Reade
 	return req, nil
 }
 
-func (c *Client) GetActions() ([]model.Action, error) {
+func (c *Client) GetActions() ([]models.Action, error) {
 	req, err := c.NewBasicAuthRequest("GET", c.endpoint+actionPath, nil)
 	if err != nil {
 		return nil, err
@@ -85,7 +82,7 @@ func (c *Client) GetActions() ([]model.Action, error) {
 
 	fmt.Println(string(bytes))
 
-	var actions model.Actions
+	var actions models.Actions
 	err = json.Unmarshal(bytes, &actions)
 	if err != nil {
 		return nil, err
@@ -94,37 +91,15 @@ func (c *Client) GetActions() ([]model.Action, error) {
 	return actions, nil
 }
 
-func (i *ActionInvocation) AddParameter(key string, value string) {
-	i.params[key] = value
-}
+func (c *Client) Invoke(i *models.ActionInvocation) ([]byte, error) {
 
-func Blocking(blocking bool) func(*ActionInvocation) {
-	return func(i *ActionInvocation) {
-		i.blocking = blocking
-	}
-}
-
-func ResultOnly(result bool) func(*ActionInvocation) {
-	return func(i *ActionInvocation) {
-		i.result = result
-	}
-}
-
-func Timeout(ms int) func(*ActionInvocation) {
-	return func(i *ActionInvocation) {
-		i.timeout = ms
-	}
-}
-
-func (c *Client) Invoke(i *ActionInvocation) ([]byte, error) {
-
-	jsonBytes, err := json.Marshal(i.params)
+	jsonBytes, err := json.Marshal(i.Params)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println(string(jsonBytes))
 
-	req, err := c.NewBasicAuthRequest("POST", c.endpoint+actionPath+i.name, bytes.NewBuffer(jsonBytes))
+	req, err := c.NewBasicAuthRequest("POST", c.endpoint+actionPath+i.Name, bytes.NewBuffer(jsonBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -133,12 +108,12 @@ func (c *Client) Invoke(i *ActionInvocation) ([]byte, error) {
 
 	// Set request parameters
 	q := req.URL.Query()
-	if i.blocking {
+	if i.Blocking {
 		q.Add("blocking", "true")
 	} else {
 		q.Add("blocking", "false")
 	}
-	if i.result {
+	if i.Result {
 		q.Add("result", "true")
 	} else {
 		q.Add("result", "false")
