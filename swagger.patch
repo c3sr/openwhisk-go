@@ -1,6 +1,2 @@
-414c414,416
-<                         "$ref": "#/responses/AcceptedActivation"
----
->                         "schema": {
->                             "$ref": "#/responses/AcceptedActivation"
->                         }
+413d412
+<                         "description": "Activation request accepted",

@@ -5,8 +5,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	openwhisk "github.com/c3sr/openwhisk-go"
-	actions "github.com/c3sr/openwhisk-go/client/actions"
-	models "github.com/c3sr/openwhisk-go/models"
+	actions "github.com/c3sr/openwhisk-go/swagger_client/actions"
+	models "github.com/c3sr/openwhisk-go/swagger_models"
 )
 
 func main() {

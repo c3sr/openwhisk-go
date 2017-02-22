@@ -5,7 +5,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	openwhisk "github.com/c3sr/openwhisk-go"
-	actions "github.com/c3sr/openwhisk-go/client/actions"
+	actions "github.com/c3sr/openwhisk-go/swagger_client/actions"
 )
 
 func main() {

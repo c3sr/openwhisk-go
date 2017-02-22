@@ -3,8 +3,8 @@ package openwhisk
 import (
 	"errors"
 
-	apiclient "github.com/c3sr/openwhisk-go/client"
-	models "github.com/c3sr/openwhisk-go/models"
+	apiclient "github.com/c3sr/openwhisk-go/swagger_client"
+	models "github.com/c3sr/openwhisk-go/swagger_models"
 
 	"os"
 

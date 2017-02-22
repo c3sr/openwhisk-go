@@ -16,8 +16,11 @@ fi
 echo "Downloading swagger defintion"
 curl -o swagger.json "$SWAGGER_URL"
 
-#echo "Validating swagger.json"
-#./swagger validate swagger.json
+echo "Patching swagger definition"
+patch swagger.json swagger.patch
+
+echo "Validating swagger.json"
+./swagger validate swagger.json
 
 echo "Generating client"
-./swagger generate client swagger.json
+./swagger generate client -c swagger_client -m swagger_models swagger.json
