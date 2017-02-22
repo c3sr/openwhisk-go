@@ -6,7 +6,7 @@ import (
 	"os"
 
 	log "github.com/Sirupsen/logrus"
-	jsoncall "github.com/c3sr/openwhisk-go/jsoncall"
+	call "github.com/c3sr/go-json-call"
 )
 
 func div(x int, y int) (int, error) {
@@ -24,7 +24,7 @@ func main() {
 	}
 
 	argsJSON := []byte(os.Args[1])
-	resultJSON, err := jsoncall.CallWithJSON(div, argsJSON)
+	resultJSON, err := call.CallWithJSON(div, argsJSON)
 	if err != nil {
 		log.Fatal(err)
 	}
