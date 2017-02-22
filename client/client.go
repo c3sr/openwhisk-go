@@ -22,6 +22,7 @@ type ActionInvocation struct {
 	params   Parameters
 	blocking bool
 	result   bool
+	timeout  int
 }
 
 type Client struct {
@@ -97,16 +98,22 @@ func (i *ActionInvocation) AddParameter(key string, value string) {
 	i.params[key] = value
 }
 
-func Blocking(i *ActionInvocation) {
-	i.blocking = true
+func Blocking(blocking bool) func(*ActionInvocation) {
+	return func(i *ActionInvocation) {
+		i.blocking = blocking
+	}
 }
 
-func Nonblocking(i *ActionInvocation) {
-	i.blocking = false
+func ResultOnly(result bool) func(*ActionInvocation) {
+	return func(i *ActionInvocation) {
+		i.result = result
+	}
 }
 
-func ResultOnly(i *ActionInvocation) {
-	i.result = true
+func Timeout(ms int) func(*ActionInvocation) {
+	return func(i *ActionInvocation) {
+		i.timeout = ms
+	}
 }
 
 func (c *Client) Invoke(i *ActionInvocation) ([]byte, error) {
