@@ -31,5 +31,6 @@ func main() {
 
 	fmt.Println(string(resultJSON))
 
-	fmt.Printf("{ \"msg\": \"Hello from arbitrary Go program!\", \"args\": %s }\n", os.Args[1:])
+	fmt.Printf("{\"msg\": \"Hello from the go-runner!\",\"args\": %s,\"results\": %s}",
+		os.Args[1], string(resultJSON))
 }
