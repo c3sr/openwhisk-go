@@ -2,6 +2,7 @@ package openwhisk
 
 import (
 	"os"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	client "github.com/c3sr/openwhisk-go/client"
@@ -34,9 +35,13 @@ func defaultOverwriteActionOptions() *overwriteActionOptions {
 	return &overwriteActionOptions{"0.0.1", 256, 60000, true, "_", &trueStr}
 }
 
-func NewClient(endpoint, username, password string) *Client {
-	return &Client{newBasicAuthSwaggerClient(endpoint, username, password),
-		client.NewClient(endpoint, username, password)}
+func NewClient(endpoint, username, password string) (*Client, error) {
+	swcli, err := newBasicAuthSwaggerClient(endpoint, username, password)
+	if err != nil {
+		return nil, err
+	}
+	return &Client{swcli,
+		client.NewClient(endpoint, username, password)}, nil
 }
 
 func (c *Client) OverwriteAction(repo, tag, actionName string, options ...OverwriteActionOption) error {
@@ -93,18 +98,25 @@ func newBasicAuthSwaggerClientFromEnv() (*swclient.OpenWhiskREST, error) {
 		return nil, errors.New("Environment variable OPENWHISK_PASSWORD was not set")
 	}
 
-	return newBasicAuthSwaggerClient(endpoint, username, password), nil
+	return newBasicAuthSwaggerClient(endpoint, username, password)
 
 }
 
-func newBasicAuthSwaggerClient(endpoint, username, password string) *swclient.OpenWhiskREST {
+func newBasicAuthSwaggerClient(endpoint, username, password string) (*swclient.OpenWhiskREST, error) {
+
+	// Strip https from url (swagger client comes with it)
+	if strings.HasPrefix(endpoint, "https://") {
+		endpoint = endpoint[8:]
+	} else {
+		return nil, errors.New("Openwhisk endpoint must start with https://")
+	}
 
 	formats := strfmt.Default
 	wr := httptransport.BasicAuth(username, password)
 	transport := httptransport.New(endpoint, "/api/v1", []string{"https"})
 	transport.DefaultAuthentication = wr
 	cli := swclient.New(transport, formats)
-	return cli
+	return cli, nil
 }
 
 func NewKeyValue(key, value string) *swmodels.KeyValue {
