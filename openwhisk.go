@@ -1,17 +1,16 @@
 package openwhisk
 
 import (
-	"errors"
-	"fmt"
-	"log"
 	"os"
 
+	log "github.com/Sirupsen/logrus"
 	client "github.com/c3sr/openwhisk-go/client"
 	swclient "github.com/c3sr/openwhisk-go/swagger_client"
 	swactions "github.com/c3sr/openwhisk-go/swagger_client/actions"
 	swmodels "github.com/c3sr/openwhisk-go/swagger_models"
 	httptransport "github.com/go-openapi/runtime/client"
 	strfmt "github.com/go-openapi/strfmt"
+	"github.com/pkg/errors"
 )
 
 type Client struct {
@@ -40,8 +39,7 @@ func NewClient(endpoint, username, password string) *Client {
 		client.NewClient(endpoint, username, password)}
 }
 
-func (c *Client) OverwriteAction(repo, tag, actionName string, options ...OverwriteActionOption) {
-
+func (c *Client) OverwriteAction(repo, tag, actionName string, options ...OverwriteActionOption) error {
 	// Apply any passed options
 	opts := defaultOverwriteActionOptions()
 	for _, o := range options {
@@ -68,16 +66,17 @@ func (c *Client) OverwriteAction(repo, tag, actionName string, options ...Overwr
 	ap.Limits = &swmodels.ActionLimits{Memory: &memLimit, Timeout: &timeout}
 	p.SetAction(ap)
 
-	ok, err := c.swcli.Actions.UpdateAction(p)
+	_, err := c.swcli.Actions.UpdateAction(p)
 
 	if err != nil {
-		log.Fatal(err)
+		log.WithError(err).Error("Error while updating action")
+		return errors.Wrap(err, "Error while updating action")
 	}
-	fmt.Println(ok)
+	return nil
 }
 
-func (c *Client) InvokeAction() {
-
+func (c *Client) InvokeAction() error {
+	return errors.New("Unimplemented")
 }
 
 func newBasicAuthSwaggerClientFromEnv() (*swclient.OpenWhiskREST, error) {
